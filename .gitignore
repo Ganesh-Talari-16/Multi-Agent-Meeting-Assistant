@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node dependencies & build
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+
+# Local database & vector store
+*.db
+*.sqlite
+chroma_db_store/
+chroma_data/
+uploaded_media/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log

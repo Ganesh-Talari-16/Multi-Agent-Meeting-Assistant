@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./meeting_assistant.db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CHROMADB_DIR=./chroma_db_store
+    volumes:
+      - ./chroma_data:/app/chroma_db_store
+      - ./uploaded_media:/app/uploaded_media
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
