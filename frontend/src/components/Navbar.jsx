@@ -7,10 +7,21 @@ import {
   Sun, 
   ChevronDown, 
   Building2, 
-  Command 
+  Command,
+  User,
+  LogOut,
+  LogIn
 } from 'lucide-react';
+import { logoutUser } from '../utils/api';
 
-export default function Navbar({ onOpenUploadModal, onSearchClick, unreadCount = 0 }) {
+export default function Navbar({ 
+  onOpenUploadModal, 
+  onSearchClick, 
+  unreadCount = 0, 
+  currentUser, 
+  onOpenAuthModal, 
+  onLogout 
+}) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [workspace, setWorkspace] = useState('Acme Corp Enterprise');
 
@@ -24,6 +35,10 @@ export default function Navbar({ onOpenUploadModal, onSearchClick, unreadCount =
       document.documentElement.classList.add('light');
     }
   };
+
+  const initials = currentUser?.full_name 
+    ? currentUser.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'AC';
 
   return (
     <header className="h-16 bg-white/80 backdrop-blur-md border-b border-sky-100 px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
@@ -79,15 +94,30 @@ export default function Navbar({ onOpenUploadModal, onSearchClick, unreadCount =
           )}
         </button>
 
-        {/* User Profile Avatar */}
+        {/* User Profile Avatar & Auth Control */}
         <div className="flex items-center gap-2.5 pl-3 border-l border-sky-100">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-            AC
-          </div>
+          <button 
+            onClick={onOpenAuthModal}
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 text-white font-bold text-xs flex items-center justify-center shadow-xs hover:scale-105 transition-all"
+            title="User Profile & Security Settings"
+          >
+            {initials}
+          </button>
           <div className="hidden lg:block text-left leading-tight">
-            <div className="text-xs font-semibold text-slate-900">Alex Chen</div>
-            <div className="text-[10px] text-sky-700">Product Manager</div>
+            <div className="text-xs font-bold text-slate-900">{currentUser?.full_name || 'Alex Chen'}</div>
+            <div className="text-[10px] text-sky-700 font-semibold">{currentUser?.role || 'Product Lead'}</div>
           </div>
+
+          <button
+            onClick={() => {
+              logoutUser();
+              if (onLogout) onLogout();
+            }}
+            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors ml-1"
+            title="Sign Out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </header>

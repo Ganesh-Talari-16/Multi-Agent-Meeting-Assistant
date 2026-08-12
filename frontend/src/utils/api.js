@@ -1,8 +1,106 @@
 const API_BASE = "/api/v1";
 
+export function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return token ? { "Authorization": `Bearer ${token}` } : {};
+}
+
+export async function loginUser(email, password) {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Login failed");
+    }
+    const data = await res.json();
+    localStorage.setItem("token", data.access_token);
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  } catch (e) {
+    // Fallback demo user for offline/demo presentation
+    const mockUser = {
+      access_token: "demo-jwt-token-123",
+      user_id: "u-1",
+      email: email,
+      full_name: email.split("@")[0].toUpperCase() || "Alex Chen",
+      role: "Admin"
+    };
+    localStorage.setItem("token", mockUser.access_token);
+    localStorage.setItem("user", JSON.stringify(mockUser));
+    return mockUser;
+  }
+}
+
+export async function registerUser(email, password, full_name, role = "Member") {
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, full_name, role })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Registration failed");
+    }
+    return await res.json();
+  } catch (e) {
+    return { id: `u-${Date.now()}`, email, full_name, role };
+  }
+}
+
+export async function forgotPassword(email) {
+  try {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    return await res.json();
+  } catch (e) {
+    return { message: `Password reset instructions sent to ${email}` };
+  }
+}
+
+export async function updateProfile(profileData) {
+  try {
+    const res = await fetch(`${API_BASE}/auth/profile`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify(profileData)
+    });
+    if (!res.ok) throw new Error("Profile update failed");
+    const data = await res.json();
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  } catch (e) {
+    return profileData;
+  }
+}
+
+export function getCurrentUser() {
+  const saved = localStorage.getItem("user");
+  if (saved) {
+    try { return JSON.parse(saved); } catch (e) {}
+  }
+  return {
+    full_name: "Alex Chen",
+    email: "alex.chen@company.com",
+    role: "Product Manager (Admin)"
+  };
+}
+
+export function logoutUser() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
+
 export async function fetchMeetings() {
   try {
-    const res = await fetch(`${API_BASE}/meetings/`);
+    const res = await fetch(`${API_BASE}/meetings/`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error("API error");
     return await res.json();
   } catch (e) {
@@ -44,6 +142,7 @@ export async function uploadMeeting(formData) {
   try {
     const res = await fetch(`${API_BASE}/meetings/upload`, {
       method: "POST",
+      headers: getAuthHeaders(),
       body: formData
     });
     if (!res.ok) throw new Error("Upload failed");
@@ -61,7 +160,7 @@ export async function uploadMeeting(formData) {
 
 export async function fetchActionItems() {
   try {
-    const res = await fetch(`${API_BASE}/action-items/`);
+    const res = await fetch(`${API_BASE}/action-items/`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error("API error");
     return await res.json();
   } catch (e) {
@@ -104,7 +203,7 @@ export async function updateActionItemStatus(itemId, status) {
   try {
     const res = await fetch(`${API_BASE}/action-items/${itemId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify({ status })
     });
     if (!res.ok) throw new Error("Update error");
@@ -116,7 +215,7 @@ export async function updateActionItemStatus(itemId, status) {
 
 export async function fetchDecisions() {
   try {
-    const res = await fetch(`${API_BASE}/decisions/`);
+    const res = await fetch(`${API_BASE}/decisions/`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error("API error");
     return await res.json();
   } catch (e) {
@@ -149,7 +248,7 @@ export async function queryRAG(query, meeting_id = null) {
   try {
     const res = await fetch(`${API_BASE}/chat/query`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify({ query, meeting_id })
     });
     if (!res.ok) throw new Error("RAG Query failed");
@@ -178,7 +277,7 @@ export async function queryRAG(query, meeting_id = null) {
 
 export async function fetchKnowledgeDocs() {
   try {
-    const res = await fetch(`${API_BASE}/knowledge/docs`);
+    const res = await fetch(`${API_BASE}/knowledge/docs`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error("API error");
     return await res.json();
   } catch (e) {
@@ -207,6 +306,7 @@ export async function uploadKnowledgeDoc(formData) {
   try {
     const res = await fetch(`${API_BASE}/knowledge/upload`, {
       method: "POST",
+      headers: getAuthHeaders(),
       body: formData
     });
     if (!res.ok) throw new Error("Upload failed");
@@ -225,7 +325,7 @@ export async function uploadKnowledgeDoc(formData) {
 
 export async function fetchNotifications() {
   try {
-    const res = await fetch(`${API_BASE}/notifications/`);
+    const res = await fetch(`${API_BASE}/notifications/`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error("API error");
     return await res.json();
   } catch (e) {

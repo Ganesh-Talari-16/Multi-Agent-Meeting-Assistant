@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
+import AuthModal from './components/AuthModal';
 import Dashboard from './pages/Dashboard';
 import MeetingsPage from './pages/MeetingsPage';
 import ActionItemsPage from './pages/ActionItemsPage';
@@ -16,7 +17,8 @@ import {
   fetchActionItems,
   fetchDecisions,
   fetchKnowledgeDocs,
-  fetchNotifications
+  fetchNotifications,
+  getCurrentUser
 } from './utils/api';
 
 export default function App() {
@@ -27,6 +29,8 @@ export default function App() {
   const [knowledgeDocs, setKnowledgeDocs] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const loadAllData = async () => {
     const [mList, aList, dList, kList, nList] = await Promise.all([
@@ -67,6 +71,12 @@ export default function App() {
           onOpenUploadModal={() => setActiveTab('meetings')}
           onSearchClick={() => setActiveTab('chat')}
           unreadCount={unreadNotificationsCount}
+          currentUser={currentUser}
+          onOpenAuthModal={() => setShowAuthModal(true)}
+          onLogout={() => {
+            setCurrentUser(getCurrentUser());
+            setShowAuthModal(true);
+          }}
         />
 
         <main className="flex-1 overflow-y-auto">
@@ -129,10 +139,23 @@ export default function App() {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsPage />
+            <SettingsPage
+              currentUser={currentUser}
+              onProfileUpdated={(updated) => setCurrentUser(updated)}
+            />
           )}
         </main>
       </div>
+
+      {/* Auth & Profile Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+          loadAllData();
+        }}
+      />
     </div>
   );
 }
