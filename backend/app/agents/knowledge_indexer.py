@@ -40,8 +40,11 @@ def get_chroma_collections():
                 self.name = name
                 self.store = {}
             def add(self, ids, documents, metadatas=None):
-                for i, doc in zip(ids, documents):
-                    self.store[i] = {"doc": doc, "metadata": metadatas[0] if metadatas else {}}
+                for idx, (i, doc) in enumerate(zip(ids, documents)):
+                    meta = metadatas[idx] if metadatas and idx < len(metadatas) else {}
+                    self.store[i] = {"doc": doc, "metadata": meta}
+            def upsert(self, ids, documents, metadatas=None):
+                self.add(ids=ids, documents=documents, metadatas=metadatas)
             def query(self, query_texts, n_results=5, where=None):
                 results = list(self.store.values())[:n_results]
                 return {
@@ -84,7 +87,11 @@ def index_meeting_transcript(meeting_id: str, title: str, transcript_text: str) 
         for idx in range(len(chunks))
     ]
     
-    meeting_col.add(ids=ids, documents=chunks, metadatas=metadatas)
+    if hasattr(meeting_col, "upsert"):
+        meeting_col.upsert(ids=ids, documents=chunks, metadatas=metadatas)
+    else:
+        meeting_col.add(ids=ids, documents=chunks, metadatas=metadatas)
+        
     logger.info(f"Successfully indexed {len(chunks)} transcript chunks for meeting {meeting_id}")
     return len(chunks)
 
@@ -107,6 +114,10 @@ def index_knowledge_document(doc_id: str, title: str, category: str, content: st
         for idx in range(len(chunks))
     ]
     
-    knowledge_col.add(ids=ids, documents=chunks, metadatas=metadatas)
+    if hasattr(knowledge_col, "upsert"):
+        knowledge_col.upsert(ids=ids, documents=chunks, metadatas=metadatas)
+    else:
+        knowledge_col.add(ids=ids, documents=chunks, metadatas=metadatas)
+        
     logger.info(f"Successfully indexed {len(chunks)} chunks for knowledge doc '{title}'")
     return len(chunks)

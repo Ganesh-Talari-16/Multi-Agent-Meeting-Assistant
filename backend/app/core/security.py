@@ -79,7 +79,8 @@ def decode_access_token(token: str) -> Optional[dict]:
         expected_sig = hmac.new(settings.SECRET_KEY.encode("utf-8"), payload_bytes.encode("utf-8"), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(sig, expected_sig):
             return None
-        decoded_json = base64.urlsafe_b64decode(payload_bytes.encode("utf-8")).decode("utf-8")
+        payload_bytes_str = payload_bytes + '=' * (-len(payload_bytes) % 4)
+        decoded_json = base64.urlsafe_b64decode(payload_bytes_str.encode("utf-8")).decode("utf-8")
         payload = json.loads(decoded_json)
         if payload.get("exp") and time.time() > payload["exp"]:
             return None

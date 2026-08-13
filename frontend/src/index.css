@@ -55,6 +55,15 @@ html.dark ::-webkit-scrollbar-thumb {
   background: #94a3b8;
 }
 
+/* Utility to hide scrollbars for horizontal chip bars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Premium Enterprise Card Utilities (Stripe / Linear / Vercel Aesthetic) */
 .ui-card {
   background: rgba(255, 255, 255, 0.92);

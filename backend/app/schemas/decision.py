@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -13,6 +13,8 @@ class DecisionCreate(BaseModel):
 
 
 class DecisionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     meeting_id: str
     topic: str
@@ -21,6 +23,3 @@ class DecisionOut(BaseModel):
     decision_makers_json: Optional[List[str]] = []
     category: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True

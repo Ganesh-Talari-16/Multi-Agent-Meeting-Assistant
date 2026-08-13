@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -12,6 +12,8 @@ class NotificationCreate(BaseModel):
 
 
 class NotificationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     title: str
     message: str
@@ -19,6 +21,3 @@ class NotificationOut(BaseModel):
     is_read: bool
     action_item_id: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True

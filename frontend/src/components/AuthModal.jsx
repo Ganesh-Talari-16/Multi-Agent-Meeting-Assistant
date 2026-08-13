@@ -155,23 +155,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
           </div>
         )}
 
-        {/* Quick Demo Shortcut Banner */}
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-sky-600" />
-            <span className="text-xs font-bold text-slate-800">Testing the App?</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleQuickDemoLogin}
-            disabled={loading}
-            className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold shadow-xs transition-colors flex items-center gap-1"
-          >
-            <span>1-Click Demo Login</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {mode === 'register' && (

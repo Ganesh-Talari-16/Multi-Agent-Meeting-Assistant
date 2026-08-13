@@ -28,3 +28,26 @@ async def mark_notification_read(notification_id: str, db: AsyncSession = Depend
     await db.commit()
     await db.refresh(notif)
     return notif
+
+
+@router.put("/read-all")
+async def mark_all_notifications_read(db: AsyncSession = Depends(get_db)):
+    """Mark all notifications as read."""
+    result = await db.execute(select(Notification).where(Notification.is_read == False))
+    notifs = result.scalars().all()
+    for notif in notifs:
+        notif.is_read = True
+    await db.commit()
+    return {"message": f"Marked {len(notifs)} notifications as read"}
+
+
+@router.delete("/{notification_id}")
+async def delete_notification(notification_id: str, db: AsyncSession = Depends(get_db)):
+    """Delete a notification."""
+    result = await db.execute(select(Notification).where(Notification.id == notification_id))
+    notif = result.scalars().first()
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    await db.delete(notif)
+    await db.commit()
+    return {"message": "Notification deleted successfully"}

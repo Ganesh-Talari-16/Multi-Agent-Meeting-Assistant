@@ -70,3 +70,15 @@ async def update_action_item(item_id: str, item_in: ActionItemUpdate, db: AsyncS
     await db.commit()
     await db.refresh(ai)
     return ai
+
+
+@router.delete("/{item_id}")
+async def delete_action_item(item_id: str, db: AsyncSession = Depends(get_db)):
+    """Delete an action item."""
+    result = await db.execute(select(ActionItem).where(ActionItem.id == item_id))
+    ai = result.scalars().first()
+    if not ai:
+        raise HTTPException(status_code=404, detail="Action item not found")
+    await db.delete(ai)
+    await db.commit()
+    return {"message": "Action item deleted successfully"}

@@ -36,22 +36,70 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalInitialMode, setAuthModalInitialMode] = useState('login');
   const [authModalAutoDemo, setAuthModalAutoDemo] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    {
+      role: 'assistant',
+      content: "Welcome to your AI Conversational Knowledge Assistant. I have indexed all meeting transcripts, decision logs, action items, and enterprise SOPs into ChromaDB. How can I help you today?",
+      citations: []
+    }
+  ]);
+
+  const [themeMode, setThemeMode] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
+
+  const handleThemeChange = (mode) => {
+    setThemeMode(mode);
+    localStorage.setItem('theme', mode);
+  };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (themeMode === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else if (themeMode === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else if (themeMode === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        root.classList.add('dark');
+        root.classList.remove('light');
+      } else {
+        root.classList.remove('dark');
+        root.classList.add('light');
+      }
+    }
+  }, [themeMode]);
+
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dataError, setDataError] = useState(null);
 
   const loadAllData = async () => {
-    const [mList, aList, dList, kList, nList] = await Promise.all([
-      fetchMeetings(),
-      fetchActionItems(),
-      fetchDecisions(),
-      fetchKnowledgeDocs(),
-      fetchNotifications()
-    ]);
-    setMeetings(mList);
-    setActionItems(aList);
-    setDecisions(dList);
-    setKnowledgeDocs(kList);
-    setNotifications(nList);
-    if (mList.length > 0 && !selectedMeeting) {
-      setSelectedMeeting(mList[0]);
+    setDataLoading(true);
+    setDataError(null);
+    try {
+      const [mList, aList, dList, kList, nList] = await Promise.all([
+        fetchMeetings(),
+        fetchActionItems(),
+        fetchDecisions(),
+        fetchKnowledgeDocs(),
+        fetchNotifications()
+      ]);
+      setMeetings(mList || []);
+      setActionItems(aList || []);
+      setDecisions(dList || []);
+      setKnowledgeDocs(kList || []);
+      setNotifications(nList || []);
+      if (mList && mList.length > 0 && !selectedMeeting) {
+        setSelectedMeeting(mList[0]);
+      }
+    } catch (err) {
+      console.error("Failed to load workspace data:", err);
+      setDataError(err.message || "Failed to load workspace data");
+    } finally {
+      setDataLoading(false);
     }
   };
 
@@ -87,6 +135,8 @@ export default function App() {
           onOpenAuth={handleOpenAuth}
           onLaunchApp={() => setActiveTab('dashboard')}
           isUserLoggedIn={Boolean(localStorage.getItem('token'))}
+          themeMode={themeMode}
+          onThemeChange={handleThemeChange}
         />
         <AuthModal
           isOpen={showAuthModal}
@@ -110,7 +160,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <Navbar
           onOpenUploadModal={() => setActiveTab('meetings')}
           onSearchClick={() => setActiveTab('chat')}
@@ -120,7 +170,7 @@ export default function App() {
           onLogout={handleLogout}
         />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto min-h-0">
           {activeTab === 'dashboard' && (
             <Dashboard
               meetings={meetings}
@@ -129,6 +179,10 @@ export default function App() {
               notifications={notifications}
               setActiveTab={setActiveTab}
               setSelectedMeeting={setSelectedMeeting}
+              loading={dataLoading}
+              error={dataError}
+              onRefreshData={loadAllData}
+              onOpenUploadModal={() => setActiveTab('meetings')}
             />
           )}
 
@@ -144,6 +198,8 @@ export default function App() {
           {activeTab === 'meetings' && (
             <MeetingsPage
               meetings={meetings}
+              actionItems={actionItems}
+              decisions={decisions}
               selectedMeeting={selectedMeeting}
               setSelectedMeeting={setSelectedMeeting}
               refreshMeetings={loadAllData}
@@ -164,7 +220,11 @@ export default function App() {
           )}
 
           {activeTab === 'chat' && (
-            <ChatPage />
+            <ChatPage
+              messages={chatMessages}
+              setMessages={setChatMessages}
+              meetings={meetings}
+            />
           )}
 
           {activeTab === 'knowledge' && (
@@ -185,6 +245,10 @@ export default function App() {
           {activeTab === 'notifications' && (
             <NotificationsPage
               notifications={notifications}
+              setNotifications={setNotifications}
+              setActiveTab={setActiveTab}
+              setSelectedMeeting={setSelectedMeeting}
+              refreshNotifications={loadAllData}
             />
           )}
 

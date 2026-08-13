@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
@@ -8,6 +8,7 @@ class ChatQueryRequest(BaseModel):
     meeting_id: Optional[str] = None
     category_filter: Optional[str] = None
     top_k: Optional[int] = 5
+    chat_history: Optional[List[Dict[str, str]]] = None
 
 
 class ChatCitation(BaseModel):
@@ -32,12 +33,11 @@ class KnowledgeDocCreate(BaseModel):
 
 
 class KnowledgeDocOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     title: str
     category: str
     chunk_count: int
     is_indexed: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True

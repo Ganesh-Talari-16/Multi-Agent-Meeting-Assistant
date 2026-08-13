@@ -14,6 +14,8 @@ async def query_knowledge_base(request: ChatQueryRequest):
     res = answer_rag_query(
         query=request.query,
         meeting_id=request.meeting_id,
-        top_k=request.top_k or 5
+        category_filter=request.category_filter,
+        top_k=request.top_k or 5,
+        chat_history=request.chat_history
     )
     return res

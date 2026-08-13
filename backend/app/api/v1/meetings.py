@@ -34,10 +34,19 @@ async def execute_meeting_pipeline_task(meeting_id: str, title: str, audio_path:
         if not meeting:
             return
 
+        from sqlalchemy import delete
+
         if pipeline_res.get("error"):
             meeting.status = "failed"
             await db.commit()
             return
+
+        # Clear existing meeting artifact records to support idempotent re-processing
+        await db.execute(delete(Transcript).where(Transcript.meeting_id == meeting_id))
+        await db.execute(delete(Summary).where(Summary.meeting_id == meeting_id))
+        await db.execute(delete(ActionItem).where(ActionItem.meeting_id == meeting_id))
+        await db.execute(delete(Decision).where(Decision.meeting_id == meeting_id))
+        await db.flush()
 
         # 1. Save Transcript
         transcript = Transcript(

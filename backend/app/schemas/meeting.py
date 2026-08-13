@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Any
 from datetime import datetime
 
@@ -24,6 +24,8 @@ class TranscriptSegment(BaseModel):
 
 
 class TranscriptOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     raw_text: str
     diarized_segments_json: Optional[List[dict]] = None
@@ -31,22 +33,20 @@ class TranscriptOut(BaseModel):
     word_count: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class SummaryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     executive_summary: str
     key_points_json: Optional[List[str]] = []
     topics_json: Optional[List[dict]] = []
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class MeetingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     title: str
     description: Optional[str] = None
@@ -57,9 +57,6 @@ class MeetingOut(BaseModel):
     updated_at: datetime
     transcript: Optional[TranscriptOut] = None
     summary: Optional[SummaryOut] = None
-
-    class Config:
-        from_attributes = True
 
 
 class ProcessMeetingRequest(BaseModel):

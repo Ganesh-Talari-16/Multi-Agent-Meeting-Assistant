@@ -7,6 +7,7 @@ from backend.app.db.models import User
 from backend.app.core.security import verify_password, get_password_hash, create_access_token, decode_access_token
 from backend.app.schemas.auth import (
     UserRegister, 
+    UserLogin,
     UserOut, 
     TokenResponse, 
     ForgotPasswordRequest, 
@@ -64,7 +65,7 @@ async def register(user_in: UserRegister, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(user_in: UserRegister, db: AsyncSession = Depends(get_db)):
+async def login(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
     """Login and receive JWT bearer token."""
     result = await db.execute(select(User).where(User.email == user_in.email))
     user = result.scalars().first()

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -22,6 +22,8 @@ class ActionItemUpdate(BaseModel):
 
 
 class ActionItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     meeting_id: str
     task_description: str
@@ -31,6 +33,3 @@ class ActionItemOut(BaseModel):
     due_date: Optional[str] = None
     status: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True

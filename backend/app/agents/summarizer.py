@@ -36,7 +36,7 @@ Respond ONLY with a valid JSON object matching this schema:
         try:
             import google.generativeai as genai
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel(settings.LLM_MODEL)
             response = model.generate_content(prompt)
             clean_text = response.text.replace("```json", "").replace("```", "").strip()
             data = json.loads(clean_text)
