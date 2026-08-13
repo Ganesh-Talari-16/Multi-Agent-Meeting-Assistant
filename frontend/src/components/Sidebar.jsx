@@ -10,8 +10,7 @@ import {
   Settings,
   User,
   ShieldCheck,
-  Zap,
-  Globe
+  Zap
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, unreadCount = 0 }) {
@@ -24,8 +23,7 @@ export default function Sidebar({ activeTab, setActiveTab, unreadCount = 0 }) {
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'notifications', label: 'Notifications', icon: Bell, count: unreadCount },
     { id: 'profile', label: 'My Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'landing', label: 'Landing Page', icon: Globe, badge: 'Public' },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   return (
@@ -72,11 +70,7 @@ export default function Sidebar({ activeTab, setActiveTab, unreadCount = 0 }) {
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                    item.id === 'landing' 
-                      ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800' 
-                      : 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800'
-                  }`}>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800">
                     {item.badge}
                   </span>
                 )}

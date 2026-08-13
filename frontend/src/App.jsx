@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import LandingPage from './components/LandingPage';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
@@ -24,8 +23,56 @@ import {
   logoutUser
 } from './utils/api';
 
+const pathToTabMap = {
+  '/': 'dashboard',
+  '/dashboard': 'dashboard',
+  '/meetings': 'meetings',
+  '/chat': 'chat',
+  '/action-items': 'action-items',
+  '/decisions': 'decisions',
+  '/reports': 'reports',
+  '/notifications': 'notifications',
+  '/profile': 'profile',
+  '/settings': 'settings'
+};
+
+const tabToPathMap = {
+  'dashboard': '/',
+  'meetings': '/meetings',
+  'chat': '/chat',
+  'action-items': '/action-items',
+  'decisions': '/decisions',
+  'reports': '/reports',
+  'notifications': '/notifications',
+  'profile': '/profile',
+  'settings': '/settings'
+};
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('landing');
+  const getTabFromLocation = () => {
+    const path = window.location.pathname;
+    return pathToTabMap[path] || 'dashboard';
+  };
+
+  const [activeTab, setActiveTabState] = useState(getTabFromLocation);
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    const targetPath = tabToPathMap[tab] || '/';
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, '', targetPath);
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const tab = getTabFromLocation();
+      setActiveTabState(tab);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [meetings, setMeetings] = useState([]);
   const [actionItems, setActionItems] = useState([]);
   const [decisions, setDecisions] = useState([]);
@@ -122,32 +169,10 @@ export default function App() {
   const handleLogout = () => {
     logoutUser();
     setCurrentUser(getCurrentUser());
-    setActiveTab('landing');
+    setActiveTab('dashboard');
   };
 
   const unreadNotificationsCount = notifications.filter(n => !n.is_read).length;
-
-  // Full Screen Landing Page
-  if (activeTab === 'landing') {
-    return (
-      <>
-        <LandingPage
-          onOpenAuth={handleOpenAuth}
-          onLaunchApp={() => setActiveTab('dashboard')}
-          isUserLoggedIn={Boolean(localStorage.getItem('token'))}
-          themeMode={themeMode}
-          onThemeChange={handleThemeChange}
-        />
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onAuthSuccess={handleAuthSuccess}
-          initialMode={authModalInitialMode}
-          autoQuickDemo={authModalAutoDemo}
-        />
-      </>
-    );
-  }
 
   // Main Workspace Application
   return (
