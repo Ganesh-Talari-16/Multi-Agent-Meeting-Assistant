@@ -60,11 +60,14 @@ export default function ChatPage({
     } catch (e) {}
   }, [messages]);
 
+  const [activeStage, setActiveStage] = useState(1);
+
   const suggestedPrompts = [
-    "What decisions were made regarding API authentication?",
-    "Who is assigned to the ChromaDB task?",
-    "Summarize all pending high priority action items.",
-    "Show latest enterprise SOP updates."
+    "When was the meeting conducted?",
+    "Who attended the meeting?",
+    "Who owns the ChromaDB task?",
+    "What decisions were made?",
+    "Summarize the meeting."
   ];
 
   const scrollToTop = () => {
@@ -92,7 +95,7 @@ export default function ChatPage({
       scrollToBottom();
     }, 60);
     return () => clearTimeout(timer);
-  }, [messages, isLoading]);
+  }, [messages, isLoading, activeStage]);
 
   const handleSend = async (queryText = inputQuery) => {
     if (!queryText.trim()) return;
@@ -102,9 +105,14 @@ export default function ChatPage({
     setMessages(updatedMessages);
     setInputQuery('');
     setIsLoading(true);
+    setActiveStage(1);
+
+    // Animate UX Pipeline Stages
+    const stageTimer1 = setTimeout(() => setActiveStage(2), 300);
+    const stageTimer2 = setTimeout(() => setActiveStage(3), 700);
+    const stageTimer3 = setTimeout(() => setActiveStage(4), 1100);
 
     try {
-      // Format chat history context window for multi-turn context
       const historyContext = updatedMessages.slice(-6).map(m => ({
         role: m.role,
         content: m.content
@@ -115,8 +123,14 @@ export default function ChatPage({
 
       const ragResult = await queryRAG(queryText, meetingId, categoryFilter, historyContext);
 
+      clearTimeout(stageTimer1);
+      clearTimeout(stageTimer2);
+      clearTimeout(stageTimer3);
+      setActiveStage(5);
+
       const botMsg = {
         role: 'assistant',
+        intent: ragResult.intent,
         content: ragResult.answer || "No response received from RAG query pipeline.",
         citations: ragResult.citations || []
       };
@@ -124,6 +138,9 @@ export default function ChatPage({
       setMessages((prev) => [...prev, botMsg]);
     } catch (err) {
       console.error("RAG Query Execution Error:", err);
+      clearTimeout(stageTimer1);
+      clearTimeout(stageTimer2);
+      clearTimeout(stageTimer3);
       setQueryError("RAG Search failed. Please check network connectivity or retry.");
       const errorMsg = {
         role: 'assistant',
@@ -310,15 +327,32 @@ export default function ChatPage({
               </div>
             ))}
 
-            {/* Loading Indicator */}
+            {/* Real-time UX Pipeline Execution Stages */}
             {isLoading && (
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-xl bg-sky-500 text-white flex items-center justify-center animate-pulse">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center animate-pulse shrink-0">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="ui-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping"></span>
-                  <span>Querying ChromaDB vector index & synthesizing answer via Gemini LLM...</span>
+                <div className="ui-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-2 max-w-xl">
+                  <div className="flex items-center gap-2 font-bold text-sky-600 dark:text-sky-400">
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span>Enterprise RAG Pipeline Executing...</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 text-[11px]">
+                    <div className={`flex items-center gap-1.5 p-1.5 rounded-lg transition-all ${activeStage >= 1 ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 font-semibold' : 'text-slate-400'}`}>
+                      <span>🔍</span> <span>Understanding Question</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 p-1.5 rounded-lg transition-all ${activeStage >= 2 ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 font-semibold' : 'text-slate-400'}`}>
+                      <span>📚</span> <span>Searching Knowledge Base</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 p-1.5 rounded-lg transition-all ${activeStage >= 3 ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 font-semibold' : 'text-slate-400'}`}>
+                      <span>📑</span> <span>Validating Sources</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 p-1.5 rounded-lg transition-all ${activeStage >= 4 ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 font-semibold' : 'text-slate-400'}`}>
+                      <span>🤖</span> <span>Generating Answer</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

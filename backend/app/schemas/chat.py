@@ -21,8 +21,11 @@ class ChatCitation(BaseModel):
 
 class ChatQueryResponse(BaseModel):
     query: str
+    intent: Optional[str] = None
     answer: str
     citations: List[ChatCitation] = []
+    confidence_score: Optional[float] = 0.95
+    pipeline_stages: Optional[List[Dict[str, Any]]] = None
     generated_at: datetime = datetime.now()
 
 

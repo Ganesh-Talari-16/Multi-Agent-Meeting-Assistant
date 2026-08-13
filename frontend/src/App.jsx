@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LandingPage from './components/LandingPage';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
@@ -24,10 +25,12 @@ import {
 } from './utils/api';
 
 const pathToTabMap = {
-  '/': 'dashboard',
+  '/': 'landing',
+  '/landing': 'landing',
   '/dashboard': 'dashboard',
   '/meetings': 'meetings',
   '/chat': 'chat',
+  '/assistant': 'chat',
   '/action-items': 'action-items',
   '/decisions': 'decisions',
   '/reports': 'reports',
@@ -37,7 +40,8 @@ const pathToTabMap = {
 };
 
 const tabToPathMap = {
-  'dashboard': '/',
+  'landing': '/',
+  'dashboard': '/dashboard',
   'meetings': '/meetings',
   'chat': '/chat',
   'action-items': '/action-items',
@@ -51,7 +55,7 @@ const tabToPathMap = {
 export default function App() {
   const getTabFromLocation = () => {
     const path = window.location.pathname;
-    return pathToTabMap[path] || 'dashboard';
+    return pathToTabMap[path] || 'landing';
   };
 
   const [activeTab, setActiveTabState] = useState(getTabFromLocation);
@@ -168,11 +172,33 @@ export default function App() {
 
   const handleLogout = () => {
     logoutUser();
-    setCurrentUser(getCurrentUser());
-    setActiveTab('dashboard');
+    setCurrentUser(null);
+    setActiveTab('landing');
   };
 
   const unreadNotificationsCount = notifications.filter(n => !n.is_read).length;
+
+  // Render Landing Page if on '/' or 'landing' tab
+  if (activeTab === 'landing') {
+    return (
+      <>
+        <LandingPage
+          onOpenAuth={handleOpenAuth}
+          onLaunchApp={() => setActiveTab('dashboard')}
+          isUserLoggedIn={!!currentUser?.email}
+          themeMode={themeMode}
+          onThemeChange={handleThemeChange}
+        />
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onAuthSuccess={handleAuthSuccess}
+          initialMode={authModalInitialMode}
+          autoQuickDemo={authModalAutoDemo}
+        />
+      </>
+    );
+  }
 
   // Main Workspace Application
   return (

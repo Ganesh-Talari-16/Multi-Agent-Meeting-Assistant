@@ -31,8 +31,9 @@ export default function Sidebar({ activeTab, setActiveTab, unreadCount = 0 }) {
       <div>
         {/* Brand Logo Header */}
         <div 
-          className="p-5 flex items-center gap-3.5 border-b border-slate-100 dark:border-slate-800/80 cursor-pointer" 
-          onClick={() => setActiveTab('dashboard')}
+          className="p-5 flex items-center gap-3.5 border-b border-slate-100 dark:border-slate-800/80 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors" 
+          onClick={() => setActiveTab('landing')}
+          title="Return to Home Landing Page"
         >
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-600 via-blue-600 to-indigo-600 p-0.5 shadow-md shadow-sky-600/20 flex items-center justify-center">
             <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
